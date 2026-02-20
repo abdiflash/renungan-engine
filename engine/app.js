@@ -2,6 +2,8 @@ if (typeof CONFIG === "undefined") {
     throw new Error("CONFIG belum dimuat. Pastikan config.js dipanggil sebelum app.js");
 }
 
+const MODE = window.RENUNGAN_MODE || "UMUM";
+
 /* ================= KONFIGURASI ================= */
 const SHEET_ID = CONFIG.SHEET_ID;
 const SHEET_GID = CONFIG.SHEET_GID;
