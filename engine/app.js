@@ -16,9 +16,16 @@ today.setHours(0,0,0,0);
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById('footerSchoolName').innerText = CONFIG.SCHOOL_NAME;
-    document.getElementById('footerSchoolLink').innerText = CONFIG.SCHOOL_SITE;
-    document.getElementById('footerSchoolLink').href = CONFIG.SCHOOL_URL;
+
+    const nameEl = document.getElementById('footerSchoolName');
+    const linkEl = document.getElementById('footerSchoolLink');
+
+    if (nameEl) nameEl.innerText = CONFIG.SCHOOL_NAME;
+    if (linkEl) {
+        linkEl.innerText = CONFIG.SCHOOL_SITE;
+        linkEl.href = CONFIG.SCHOOL_URL;
+    }
+
     fetchData();
 });
 
