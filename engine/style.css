@@ -1,0 +1,288 @@
+/* ======================
+   1. VARIABLES & RESET
+====================== */
+:root {
+  --primary: #2f6f4e;       
+  --primary-dark: #1e4d37;  
+  --accent: #d4edda;        
+  --highlight: #e67e22;     
+  --bg-body: #f4f7f6;
+  --text-main: #2c3e50;
+  --text-muted: #636e72;
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  background: var(--bg-body);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin-top: 0; font-weight: 700; }
+button { font-family: inherit; cursor: pointer; border: none; }
+
+/* ======================
+   2. HEADER
+====================== */
+.app-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: 1.5rem 1rem 3rem 1rem;
+  text-align: center;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 0 4px 12px rgba(47, 111, 78, 0.3);
+}
+
+.app-header h1 { font-size: 1.6rem; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
+.app-header p { margin: 0; font-size: 0.95rem; opacity: 0.9; }
+
+/* ======================
+   3. LAYOUT CONTAINER
+====================== */
+.container {
+  max-width: 720px;
+  margin: -40px auto 40px auto; 
+  padding: 0 15px;
+  position: relative;
+  z-index: 10;
+}
+
+/* ======================
+   4. RENUNGAN CARD & UI TOP BUTTONS
+====================== */
+#renungan, #calendar, #emptyState {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 20px;
+  animation: slideUpFade 0.4s ease-out;
+}
+
+#renungan header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+#renungan h2 { color: var(--primary); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+#renungan time { display: block; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px; }
+
+.audio-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;    
+    gap: 15px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.action-area-top {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.btn-elegant {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    min-width: 150px;
+    border: 2px solid var(--primary);
+    cursor: pointer;
+}
+
+.audio-slider {
+    width: 100%;
+    max-width: 320px;      
+    height: 40px;
+    display: block;        
+    margin: 5px auto;      
+    border-radius: 50px;   
+    background-color: var(--accent);
+    outline: none;
+    filter: sepia(20%) saturate(70%) hue-rotate(90deg);
+}
+
+#audioPlayer {
+    clear: both; 
+    display: none;
+}
+
+/* ======================
+   5. CONTENT AREA
+====================== */
+#displayJudul {
+  font-size: 1.5rem;
+  color: #222;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.ayat-box {
+  background: var(--accent);
+  border-left: 5px solid var(--primary);
+  padding: 15px 20px;
+  margin: 20px 0;
+  border-radius: 0 8px 8px 0;
+}
+.ayat-ref { display: block; font-weight: bold; color: var(--primary-dark); margin-bottom: 6px; }
+.ayat-text { font-style: italic; color: #444; margin: 0; font-size: 1.05rem; text-align: left; }
+
+/* PERUBAHAN DI SINI: justify diubah ke left */
+#displayIsi { 
+  font-size: 1.05rem; 
+  color: #333; 
+  text-align: left; 
+  margin-bottom: 25px; 
+  line-height: 1.7; /* Sedikit lebih renggang agar lebih enak dibaca */
+}
+
+.refleksi-box {
+  background: #fff8e1; 
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px dashed #ffd54f;
+  margin-top: 20px;
+}
+.refleksi-label { font-size: 0.75rem; font-weight: bold; color: #f57f17; text-transform: uppercase; margin-bottom: 5px; }
+.refleksi-content { margin: 0; font-style: italic; color: #5d4037; text-align: left; }
+
+/* ======================
+   6. STATS & HIT COUNTER
+====================== */
+.reader-stats {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px dashed #ddd;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+#count {
+    color: var(--primary-dark);
+    font-weight: 800;
+}
+
+/* ======================
+   7. KALENDER UI 
+====================== */
+.calendar-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; padding: 0 5px;
+}
+.calendar-header h3 { font-size: 1.2rem; margin: 0; color: var(--primary); }
+
+.nav-btn {
+  background: transparent; border: 1px solid var(--primary);
+  color: var(--primary); width: 32px; height: 32px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: 0.2s;
+}
+.nav-btn:hover { background: var(--primary); color: white; }
+
+.calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 8px; margin-bottom: 20px;
+}
+
+.day-name {
+  text-align: center; font-size: 0.8rem; font-weight: bold;
+  color: #aaa; text-transform: uppercase; margin-bottom: 5px;
+}
+
+.date-cell {
+  aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; font-weight: 500; font-size: 0.95rem;
+  position: relative; transition: all 0.2s ease;
+}
+
+.date-cell.available { background-color: var(--accent); color: var(--primary-dark); cursor: pointer; }
+.date-cell.available:hover { background-color: var(--primary); color: white; transform: scale(1.1); z-index: 2; }
+.date-cell.today { border: 2px solid var(--highlight); font-weight: bold; }
+.date-cell.locked { background-color: #eee; color: #bbb; cursor: not-allowed; }
+
+.calendar-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.btn-close-calendar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    min-width: 145px;
+    height: 42px;
+    border: 2px solid var(--primary);
+    background: white;
+    color: var(--primary);
+    font-family: inherit;
+}
+
+.btn-close-calendar:hover {
+    background: #f0fdf4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* ======================
+   8. FOOTER
+====================== */
+.app-footer {
+  background: transparent;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem 1rem 4rem 1rem;
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.footer-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.loading { padding: 50px; text-align: center; color: var(--text-muted); }
+.hidden { display: none !important; }
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile Tweak */
+@media (max-width: 480px) {
+  .btn-elegant { min-width: 130px; padding: 8px 12px; font-size: 0.8rem; }
+  .action-area-top { gap: 8px; }
+  #displayJudul { font-size: 1.3rem; }
+  /* Memastikan di HP tetap rata kiri */
+  #displayIsi, .ayat-text, .refleksi-content { text-align: left; }
+}
