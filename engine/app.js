@@ -243,9 +243,6 @@ function renderCalendar() {
     const firstDayIndex = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // 1. CEK STATUS VIP (MODE BEBAS) DARI FILE HTML
-    const isVipAccess = (typeof MODE_BEBAS !== 'undefined' && MODE_BEBAS === true);
-
     for (let i = 0; i < firstDayIndex; i++) {
         const empty = document.createElement('div');
         empty.className = 'date-cell empty';
@@ -261,28 +258,26 @@ function renderCalendar() {
         cell.className = 'date-cell';
         cell.innerText = i;
 
-        if (dateKey === formatDateKey(today)) cell.classList.add('today');
+        if (dateKey === formatDateKey(today)) {
+            cell.classList.add('today');
+        }
 
-        // 2. LOGIKA PEMBLOKIRAN DIPERBARUI
-        // Jika Tanggal Masa Depan DAN BUKAN Mode VIP -> Blokir
-        if (dateCheck > today && !isVipAccess) {
+        // ==============================
+        // LOGIKA MODE UMUM / KHUSUS
+        // ==============================
+        if (MODE === "UMUM" && dateCheck > today) {
             cell.classList.add('locked');
             cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
-        } 
-        // Jika Tanggal Masa Lalu, Hari Ini, ATAU Mode VIP -> Buka
-        else {
+        } else {
             const dataRenungan = allRenungan.find(r => r.key === dateKey);
             if (dataRenungan) {
                 cell.classList.add('available', 'has-renungan');
                 cell.onclick = () => renderRenungan(dataRenungan);
             } else {
                 cell.style.opacity = '0.5';
-                // Opsional: Beri info jika data kosong meski mode VIP
-                if(isVipAccess && dateCheck > today) {
-                    cell.onclick = () => alert("Belum ada data renungan untuk tanggal ini.");
-                }
             }
         }
+
         grid.appendChild(cell);
     }
 }
