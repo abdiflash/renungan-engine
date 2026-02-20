@@ -1,3 +1,7 @@
+if (typeof CONFIG === "undefined") {
+    throw new Error("CONFIG belum dimuat. Pastikan config.js dipanggil sebelum app.js");
+}
+
 /* ================= KONFIGURASI ================= */
 const SHEET_ID = CONFIG.SHEET_ID;
 const SHEET_GID = CONFIG.SHEET_GID;
@@ -292,8 +296,8 @@ async function loadHitCounter() {
     const countElement = document.getElementById('count');
     if (!countElement) return;
 
-    const namespace = "renungan-saas-abdiflash"; 
-    const key = "visitor_count";
+    const namespace = CONFIG.COUNTER_NAMESPACE || "default-renungan";
+const key = CONFIG.COUNTER_KEY || "visitor_count";
 
     try {
         // 1. Mencoba ambil data real dari API
