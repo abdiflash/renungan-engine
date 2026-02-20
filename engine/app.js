@@ -31,8 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* ================= FETCH DATA ================= */
 async function fetchData() {
-    const query = `SELECT A, B, C, D, E, F, G, H, I`; 
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${encodeURIComponent(query)}&gid=${SHEET_GID}`;
+    const query = `SELECT A, B, C, D, E, F, G, H, I FORMAT A '', B '', C '', D '', E '', F '', G '', H '', I ''`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`;
 
     try {
         const res = await fetch(url);
