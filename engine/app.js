@@ -16,6 +16,7 @@ today.setHours(0,0,0,0);
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
+
     const nameEl = document.getElementById('footerSchoolName');
     const linkEl = document.getElementById('footerSchoolLink');
 
@@ -44,8 +45,12 @@ async function fetchData() {
 
         document.getElementById('loader').classList.add('hidden');
 
-        if (todayData) renderRenungan(todayData);
-        else document.getElementById('emptyState').classList.remove('hidden');
+        if (todayData) {
+            renderRenungan(todayData);
+            loadHitCounter();
+        } else {
+            document.getElementById('emptyState').classList.remove('hidden');
+        }
 
         if (typeof loadHitCounter === 'function') loadHitCounter();
 
@@ -60,9 +65,11 @@ function parseData(rows) {
         const v = (i) => (row.c[i] ? row.c[i].v : '');
         let d = null;
         let rawDate = v(0); 
+
         if (rawDate !== '' && rawDate !== null) {
-            if (typeof rawDate === 'number') d = new Date(Math.round((rawDate - 25569) * 86400 * 1000));
-            else if (typeof rawDate === 'string' && rawDate.includes('Date')) {
+            if (typeof rawDate === 'number') {
+                d = new Date(Math.round((rawDate - 25569) * 86400 * 1000));
+            } else if (typeof rawDate === 'string' && rawDate.includes('Date')) {
                 const parts = rawDate.match(/Date\((\d+),(\d+),(\d+)\)/);
                 if(parts) d = new Date(parts[1], parts[2], parts[3]);
             } else if (typeof rawDate === 'string') {
@@ -82,7 +89,9 @@ function parseData(rows) {
         let finalAudio = v(6);
         if (finalAudio && typeof finalAudio === 'string' && finalAudio.includes('dropbox.com')) {
             finalAudio = finalAudio.replace(/dl=0/g, 'raw=1').replace(/dl=1/g, 'raw=1');
-            if (!finalAudio.includes('raw=1')) finalAudio += finalAudio.includes('?') ? '&raw=1' : '?raw=1';
+            if (!finalAudio.includes('raw=1')) {
+                finalAudio += finalAudio.includes('?') ? '&raw=1' : '?raw=1';
+            }
         }
 
         return {
@@ -100,7 +109,7 @@ function parseData(rows) {
     }).filter(item => item && item.status === 'published');
 }
 
-/* ================= RENDER RENUNGAN ================= */
+/* ================= RENDER LOGIC ================= */
 function renderRenungan(data) {
     document.getElementById('emptyState').classList.add('hidden');
     document.getElementById('calendar').classList.add('hidden');
@@ -115,52 +124,58 @@ function renderRenungan(data) {
     document.getElementById('displayRefleksi').innerText = data.refleksi;
 
     const yearElement = document.getElementById('academicYear');
-    if (yearElement) yearElement.innerText = data.tahunAjaran || "2025/2026";
+    if (yearElement) {
+        yearElement.innerText = data.tahunAjaran || "2025/2026";
+    }
     
     setupAudioPlayer(data.audioUrl);
 }
 
-/* ================= AUDIO ================= */
+/* ================= AUDIO LOGIC ================= */
 function setupAudioPlayer(urlRaw) {
     const player = document.getElementById('audioPlayer');
     const btn = document.getElementById('audioControl');
     const source = document.getElementById('audioSource');
+
     if (!player || !btn || !source) return;
 
     player.pause();
     player.currentTime = 0;
+    
     player.style.display = 'none';
     btn.style.display = 'none';
     
     if (urlRaw && urlRaw.trim() !== "") {
         let finalUrl = urlRaw.trim();
         if (!finalUrl.startsWith('http')) finalUrl = `assets/audio/${finalUrl}`;
+
         source.src = finalUrl;
-        player.load(); 
+        player.load();
 
         btn.style.display = 'inline-flex';
         btn.innerHTML = '▶️ Putar Audio';
         btn.disabled = false;
-        player.style.display = 'block'; 
+        player.style.display = 'block';
         player.style.marginTop = '15px';
         player.style.width = '100%';
 
         player.onwaiting = () => { btn.innerHTML = '⏳ Memuat...'; btn.disabled = true; };
         player.onplaying = () => { btn.innerHTML = '⏸️ Pause Audio'; btn.disabled = false; };
         player.onpause = () => { btn.innerHTML = '▶️ Lanjutkan Audio'; btn.disabled = false; };
-        player.onended = () => { btn.innerHTML = '▶️ Putar Ulang'; player.style.display = 'block'; };
+        player.onended = () => { btn.innerHTML = '▶️ Putar Ulang'; };
         player.onerror = () => { btn.innerHTML = '⚠️ Gagal Memuat'; btn.disabled = true; player.style.display = 'none'; };
-    } 
+    }
 }
 
 function toggleAudio() {
     const player = document.getElementById('audioPlayer');
     if (!player) return;
+
     if (player.paused) player.play().catch(e => console.warn("Playback blocked:", e));
     else player.pause();
 }
 
-/* ================= KALENDER ================= */
+/* ================= KALENDER LOGIC ================= */
 function showCalendarView() {
     document.getElementById('renungan').classList.add('hidden');
     document.getElementById('emptyState').classList.add('hidden');
@@ -170,13 +185,107 @@ function showCalendarView() {
 
 function hideCalendarView() {
     if (document.getElementById('displayJudul').innerText === "") {
-        document.getElementById('calendar').classList.add('hidden');
-        document.getElementById('emptyState').classList.remove('hidden');
+         document.getElementById('calendar').classList.add('hidden');
+         document.getElementById('emptyState').classList.remove('hidden');
     } else {
-        document.getElementById('calendar').classList.add('hidden');
-        document.getElementById('renungan').classList.remove('hidden');
+         document.getElementById('calendar').classList.add('hidden');
+         document.getElementById('renungan').classList.remove('hidden');
     }
 }
 
 function changeMonth(delta) {
-    currentCalendarDate.setMonth(currentCalendarDate.getMonth
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+    renderCalendar();
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    if (!grid) return;
+    grid.innerHTML = ''; 
+
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    document.getElementById('calendarMonthLabel').innerText = `${monthNames[month]} ${year}`;
+
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDayIndex; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'date-cell empty';
+        grid.appendChild(empty);
+    }
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dateCheck = new Date(year, month, i);
+        dateCheck.setHours(0,0,0,0);
+        const dateKey = formatDateKey(dateCheck);
+
+        const cell = document.createElement('div');
+        cell.className = 'date-cell';
+        cell.innerText = i;
+
+        if (dateKey === formatDateKey(today)) cell.classList.add('today');
+
+        const dataRenungan = allRenungan.find(r => r.key === dateKey);
+
+        if (dataRenungan) {
+            if (dateCheck > today && CONFIG.FUTURE_UNLOCKED) {
+                cell.classList.add('available', 'future-unlocked');
+                cell.onclick = () => renderRenungan(dataRenungan);
+            } else if (dateCheck > today) {
+                cell.classList.add('locked');
+                cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
+            } else {
+                cell.classList.add('available', 'has-renungan');
+                cell.onclick = () => renderRenungan(dataRenungan);
+            }
+        } else {
+            cell.style.opacity = '0.5';
+        }
+
+        grid.appendChild(cell);
+    }
+}
+
+function formatDateKey(date) {
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset*60*1000));
+    return localDate.toISOString().split('T')[0];
+}
+
+/* ================= HIT COUNTER ================= */
+async function loadHitCounter() {
+    const countElement = document.getElementById('count');
+    if (!countElement) return;
+
+    const namespace = CONFIG.COUNTER_NAMESPACE || "default-renungan";
+    const key = CONFIG.COUNTER_KEY || "visitor_count";
+
+    try {
+        const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+        const data = await response.json();
+        if (data && data.value) {
+            animateValue(countElement, 0, data.value, 1000);
+            localStorage.setItem('visitor_sim', data.value);
+        } else throw new Error('Data invalid');
+    } catch (error) {
+        console.warn("Counter API offline, menggunakan simulasi.");
+        let savedCount = parseInt(localStorage.getItem('visitor_sim')) || 100;
+        savedCount += 1;
+        localStorage.setItem('visitor_sim', savedCount);
+        animateValue(countElement, 0, savedCount, 1000);
+    }
+}
+
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString('id-ID');
+        if (progress < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+}
