@@ -54,10 +54,7 @@ async function fetchData() {
             document.getElementById('emptyState').classList.remove('hidden');
         }
 
-        // Panggil Hit Counter setelah data termuat
-        if (typeof loadHitCounter === 'function') {
-            loadHitCounter();
-        }
+        if (typeof loadHitCounter === 'function') loadHitCounter();
 
     } catch (error) {
         console.error(error);
@@ -129,14 +126,12 @@ function renderRenungan(data) {
     document.getElementById('displayRefleksi').innerText = data.refleksi;
 
     const yearElement = document.getElementById('academicYear');
-    if (yearElement) {
-        yearElement.innerText = data.tahunAjaran || "2025/2026";
-    }
+    if (yearElement) yearElement.innerText = data.tahunAjaran || "2025/2026";
     
     setupAudioPlayer(data.audioUrl);
 }
 
-/* ================= LOGIKA AUDIO (MENGGUNAKAN VERSI BACKUP ANDA) ================= */
+/* ================= AUDIO LOGIC ================= */
 function setupAudioPlayer(urlRaw) {
     const player = document.getElementById('audioPlayer');
     const btn = document.getElementById('audioControl');
@@ -146,57 +141,26 @@ function setupAudioPlayer(urlRaw) {
 
     player.pause();
     player.currentTime = 0;
-    
-    // Sembunyikan dulu di awal
     player.style.display = 'none';
     btn.style.display = 'none';
     
     if (urlRaw && urlRaw.trim() !== "") {
         let finalUrl = urlRaw.trim();
-        if (!finalUrl.startsWith('http')) {
-            finalUrl = `assets/audio/${finalUrl}`;
-        }
-
+        if (!finalUrl.startsWith('http')) finalUrl = `assets/audio/${finalUrl}`;
         source.src = finalUrl;
         player.load(); 
-
-        // Tampilkan tombol dan slider
         btn.style.display = 'inline-flex';
         btn.innerHTML = '▶️ Putar Audio';
         btn.disabled = false;
-        
-        // Memunculkan slider audio di bawah tombol
         player.style.display = 'block'; 
         player.style.marginTop = '15px';
         player.style.width = '100%';
 
-        player.onwaiting = () => {
-            btn.innerHTML = '⏳ Memuat...';
-            btn.disabled = true;
-        };
-
-        player.onplaying = () => {
-            btn.innerHTML = '⏸️ Pause Audio';
-            btn.disabled = false;
-        };
-
-        player.onpause = () => {
-            btn.innerHTML = '▶️ Lanjutkan Audio';
-            btn.disabled = false;
-        };
-
-        player.onended = () => {
-            btn.innerHTML = '▶️ Putar Ulang';
-            // Slider tetap dibiarkan muncul agar bisa digeser manual
-            player.style.display = 'block'; 
-        };
-
-        player.onerror = () => {
-            btn.innerHTML = '⚠️ Gagal Memuat';
-            btn.disabled = true;
-            player.style.display = 'none';
-        };
-
+        player.onwaiting = () => { btn.innerHTML = '⏳ Memuat...'; btn.disabled = true; };
+        player.onplaying = () => { btn.innerHTML = '⏸️ Pause Audio'; btn.disabled = false; };
+        player.onpause = () => { btn.innerHTML = '▶️ Lanjutkan Audio'; btn.disabled = false; };
+        player.onended = () => { btn.innerHTML = '▶️ Putar Ulang'; player.style.display = 'block'; };
+        player.onerror = () => { btn.innerHTML = '⚠️ Gagal Memuat'; btn.disabled = true; player.style.display = 'none'; };
     } else {
         btn.style.display = 'none';
         player.style.display = 'none';
@@ -206,12 +170,8 @@ function setupAudioPlayer(urlRaw) {
 function toggleAudio() {
     const player = document.getElementById('audioPlayer');
     if (!player) return;
-
-    if (player.paused) {
-        player.play().catch(e => console.warn("Playback blocked:", e));
-    } else {
-        player.pause();
-    }
+    if (player.paused) player.play().catch(e => console.warn("Playback blocked:", e));
+    else player.pause();
 }
 
 /* ================= KALENDER LOGIC ================= */
@@ -244,7 +204,7 @@ function renderCalendar() {
 
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
-    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const monthNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
     document.getElementById('calendarMonthLabel').innerText = `${monthNames[month]} ${year}`;
 
     const firstDayIndex = new Date(year, month, 1).getDay();
@@ -265,33 +225,26 @@ function renderCalendar() {
         cell.className = 'date-cell';
         cell.innerText = i;
 
-        if (dateKey === formatDateKey(today)) {
-            cell.classList.add('today');
-        }
+        if (dateKey === formatDateKey(today)) cell.classList.add('today');
 
-        // ==============================
-        // LOGIKA MODE UMUM / KHUSUS
-        // ==============================
         const dataRenungan = allRenungan.find(r => r.key === dateKey);
 
-if (dataRenungan) {
-    cell.classList.add('available', 'has-renungan');
+        if (dataRenungan) {
+            cell.classList.add('available', 'has-renungan');
 
-    if (MODE === "UMUM" && dateCheck > today) {
-        // H+1 ke depan dikunci
-        cell.classList.add('locked');
-        cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
-    } else {
-        // Semua tanggal bisa diklik
-        if (dateCheck > today) {
-            cell.classList.add('future-unlocked'); // hijau gelap
+            if (MODE === "UMUM" && dateCheck > today) {
+                cell.classList.add('locked');
+                cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
+            } else if (MODE === "KHUSUS" && dateCheck > today) {
+                cell.classList.add('future-unlocked');
+                cell.onclick = () => renderRenungan(dataRenungan);
+            } else {
+                cell.onclick = () => renderRenungan(dataRenungan);
+            }
+
+        } else {
+            cell.style.opacity = '0.5';
         }
-        cell.onclick = () => renderRenungan(dataRenungan);
-    }
-
-} else {
-    cell.style.opacity = '0.5'; // tanggal kosong
-}
 
         grid.appendChild(cell);
     }
@@ -303,47 +256,38 @@ function formatDateKey(date) {
     return localDate.toISOString().split('T')[0];
 }
 
-/* ================= HIT COUNTER LOGIC (ANTI-ERROR) ================= */
+/* ================= HIT COUNTER ================= */
 async function loadHitCounter() {
     const countElement = document.getElementById('count');
     if (!countElement) return;
 
     const namespace = CONFIG.COUNTER_NAMESPACE || "default-renungan";
-const key = CONFIG.COUNTER_KEY || "visitor_count";
+    const key = CONFIG.COUNTER_KEY || "visitor_count";
 
     try {
-        // 1. Mencoba ambil data real dari API
         const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
         const data = await response.json();
 
         if (data && data.value) {
             animateValue(countElement, 0, data.value, 1000);
-            localStorage.setItem('visitor_sim', data.value); // Sinkronisasi cadangan
-        } else {
-            throw new Error('Data invalid');
-        }
+            localStorage.setItem('visitor_sim', data.value);
+        } else throw new Error('Data invalid');
     } catch (error) {
-        // 2. Jika API gagal, gunakan simulasi lokal agar angka tidak "macet"
         console.warn("Counter API offline, menggunakan simulasi.");
-        
         let savedCount = parseInt(localStorage.getItem('visitor_sim')) || 100;
-        savedCount += 1; // Tambah 1 setiap refresh
-        
+        savedCount += 1;
         localStorage.setItem('visitor_sim', savedCount);
         animateValue(countElement, 0, savedCount, 1000);
     }
 }
 
-// Fungsi animasi angka menghitung
 function animateValue(obj, start, end, duration) {
     let startTimestamp = null;
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString('id-ID');
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
+        if (progress < 1) window.requestAnimationFrame(step);
     };
     window.requestAnimationFrame(step);
 }
