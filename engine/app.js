@@ -230,21 +230,24 @@ function renderCalendar() {
         const dataRenungan = allRenungan.find(r => r.key === dateKey);
 
         if (dataRenungan) {
-            cell.classList.add('available', 'has-renungan');
+    cell.classList.add('available', 'has-renungan');
 
-            if (MODE === "UMUM" && dateCheck > today) {
-                cell.classList.add('locked');
-                cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
-            } else if (MODE === "KHUSUS" && dateCheck > today) {
-                cell.classList.add('future-unlocked');
-                cell.onclick = () => renderRenungan(dataRenungan);
-            } else {
-                cell.onclick = () => renderRenungan(dataRenungan);
-            }
+    if (MODE === "UMUM" && dateCheck > today) {
+        // Kunci tanggal ke depan di mode UMUM
+        cell.classList.add('locked');
+        cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
+    } else {
+        // Semua bisa diklik
+        cell.onclick = () => renderRenungan(dataRenungan);
 
-        } else {
-            cell.style.opacity = '0.5';
+        // H+1+ → future-unlocked (merah gelap)
+        if (dateCheck > today) {
+            cell.classList.add('future-unlocked');
         }
+    }
+} else {
+    cell.style.opacity = '0.5'; // tanggal kosong
+}
 
         grid.appendChild(cell);
     }
