@@ -272,18 +272,26 @@ function renderCalendar() {
         // ==============================
         // LOGIKA MODE UMUM / KHUSUS
         // ==============================
-        if (MODE === "UMUM" && dateCheck > today) {
-            cell.classList.add('locked');
-            cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
-        } else {
-            const dataRenungan = allRenungan.find(r => r.key === dateKey);
-            if (dataRenungan) {
-                cell.classList.add('available', 'has-renungan');
-                cell.onclick = () => renderRenungan(dataRenungan);
-            } else {
-                cell.style.opacity = '0.5';
-            }
+        const dataRenungan = allRenungan.find(r => r.key === dateKey);
+
+if (dataRenungan) {
+    cell.classList.add('available', 'has-renungan');
+
+    if (MODE === "UMUM" && dateCheck > today) {
+        // H+1 ke depan dikunci
+        cell.classList.add('locked');
+        cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
+    } else {
+        // Semua tanggal bisa diklik
+        if (dateCheck > today) {
+            cell.classList.add('future-unlocked'); // hijau gelap
         }
+        cell.onclick = () => renderRenungan(dataRenungan);
+    }
+
+} else {
+    cell.style.opacity = '0.5'; // tanggal kosong
+}
 
         grid.appendChild(cell);
     }
