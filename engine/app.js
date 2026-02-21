@@ -31,7 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* ================= FETCH DATA ================= */
 async function fetchData() {
+    const query = `SELECT A, B, C, D, E, F, G, H, I FORMAT A '', B '', C '', D '', E '', F '', G '', H '', I ''`;
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`;
+
     try {
         const res = await fetch(url);
         const text = await res.text();
@@ -52,7 +54,10 @@ async function fetchData() {
             document.getElementById('emptyState').classList.remove('hidden');
         }
 
-        if (typeof loadHitCounter === 'function') loadHitCounter();
+        // Panggil Hit Counter setelah data termuat
+        if (typeof loadHitCounter === 'function') {
+            loadHitCounter();
+        }
 
     } catch (error) {
         console.error(error);
@@ -131,7 +136,7 @@ function renderRenungan(data) {
     setupAudioPlayer(data.audioUrl);
 }
 
-/* ================= AUDIO LOGIC ================= */
+/* ================= LOGIKA AUDIO (MENGGUNAKAN VERSI BACKUP ANDA) ================= */
 function setupAudioPlayer(urlRaw) {
     const player = document.getElementById('audioPlayer');
     const btn = document.getElementById('audioControl');
@@ -142,28 +147,59 @@ function setupAudioPlayer(urlRaw) {
     player.pause();
     player.currentTime = 0;
     
+    // Sembunyikan dulu di awal
     player.style.display = 'none';
     btn.style.display = 'none';
     
     if (urlRaw && urlRaw.trim() !== "") {
         let finalUrl = urlRaw.trim();
-        if (!finalUrl.startsWith('http')) finalUrl = `assets/audio/${finalUrl}`;
+        if (!finalUrl.startsWith('http')) {
+            finalUrl = `assets/audio/${finalUrl}`;
+        }
 
         source.src = finalUrl;
-        player.load();
+        player.load(); 
 
+        // Tampilkan tombol dan slider
         btn.style.display = 'inline-flex';
         btn.innerHTML = '▶️ Putar Audio';
         btn.disabled = false;
-        player.style.display = 'block';
+        
+        // Memunculkan slider audio di bawah tombol
+        player.style.display = 'block'; 
         player.style.marginTop = '15px';
         player.style.width = '100%';
 
-        player.onwaiting = () => { btn.innerHTML = '⏳ Memuat...'; btn.disabled = true; };
-        player.onplaying = () => { btn.innerHTML = '⏸️ Pause Audio'; btn.disabled = false; };
-        player.onpause = () => { btn.innerHTML = '▶️ Lanjutkan Audio'; btn.disabled = false; };
-        player.onended = () => { btn.innerHTML = '▶️ Putar Ulang'; };
-        player.onerror = () => { btn.innerHTML = '⚠️ Gagal Memuat'; btn.disabled = true; player.style.display = 'none'; };
+        player.onwaiting = () => {
+            btn.innerHTML = '⏳ Memuat...';
+            btn.disabled = true;
+        };
+
+        player.onplaying = () => {
+            btn.innerHTML = '⏸️ Pause Audio';
+            btn.disabled = false;
+        };
+
+        player.onpause = () => {
+            btn.innerHTML = '▶️ Lanjutkan Audio';
+            btn.disabled = false;
+        };
+
+        player.onended = () => {
+            btn.innerHTML = '▶️ Putar Ulang';
+            // Slider tetap dibiarkan muncul agar bisa digeser manual
+            player.style.display = 'block'; 
+        };
+
+        player.onerror = () => {
+            btn.innerHTML = '⚠️ Gagal Memuat';
+            btn.disabled = true;
+            player.style.display = 'none';
+        };
+
+    } else {
+        btn.style.display = 'none';
+        player.style.display = 'none';
     }
 }
 
@@ -171,8 +207,11 @@ function toggleAudio() {
     const player = document.getElementById('audioPlayer');
     if (!player) return;
 
-    if (player.paused) player.play().catch(e => console.warn("Playback blocked:", e));
-    else player.pause();
+    if (player.paused) {
+        player.play().catch(e => console.warn("Playback blocked:", e));
+    } else {
+        player.pause();
+    }
 }
 
 /* ================= KALENDER LOGIC ================= */
@@ -221,28 +260,29 @@ function renderCalendar() {
         const dateCheck = new Date(year, month, i);
         dateCheck.setHours(0,0,0,0);
         const dateKey = formatDateKey(dateCheck);
-
+        
         const cell = document.createElement('div');
         cell.className = 'date-cell';
         cell.innerText = i;
 
-        if (dateKey === formatDateKey(today)) cell.classList.add('today');
+        if (dateKey === formatDateKey(today)) {
+            cell.classList.add('today');
+        }
 
-        const dataRenungan = allRenungan.find(r => r.key === dateKey);
-
-        if (dataRenungan) {
-            if (dateCheck > today && CONFIG.FUTURE_UNLOCKED) {
-                cell.classList.add('available', 'future-unlocked');
-                cell.onclick = () => renderRenungan(dataRenungan);
-            } else if (dateCheck > today) {
-                cell.classList.add('locked');
-                cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
-            } else {
+        // ==============================
+        // LOGIKA MODE UMUM / KHUSUS
+        // ==============================
+        if (MODE === "UMUM" && dateCheck > today) {
+            cell.classList.add('locked');
+            cell.onclick = () => alert("⏳ Renungan belum dibuka. Silakan kembali besok.");
+        } else {
+            const dataRenungan = allRenungan.find(r => r.key === dateKey);
+            if (dataRenungan) {
                 cell.classList.add('available', 'has-renungan');
                 cell.onclick = () => renderRenungan(dataRenungan);
+            } else {
+                cell.style.opacity = '0.5';
             }
-        } else {
-            cell.style.opacity = '0.5';
         }
 
         grid.appendChild(cell);
@@ -255,37 +295,47 @@ function formatDateKey(date) {
     return localDate.toISOString().split('T')[0];
 }
 
-/* ================= HIT COUNTER ================= */
+/* ================= HIT COUNTER LOGIC (ANTI-ERROR) ================= */
 async function loadHitCounter() {
     const countElement = document.getElementById('count');
     if (!countElement) return;
 
     const namespace = CONFIG.COUNTER_NAMESPACE || "default-renungan";
-    const key = CONFIG.COUNTER_KEY || "visitor_count";
+const key = CONFIG.COUNTER_KEY || "visitor_count";
 
     try {
+        // 1. Mencoba ambil data real dari API
         const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
         const data = await response.json();
+
         if (data && data.value) {
             animateValue(countElement, 0, data.value, 1000);
-            localStorage.setItem('visitor_sim', data.value);
-        } else throw new Error('Data invalid');
+            localStorage.setItem('visitor_sim', data.value); // Sinkronisasi cadangan
+        } else {
+            throw new Error('Data invalid');
+        }
     } catch (error) {
+        // 2. Jika API gagal, gunakan simulasi lokal agar angka tidak "macet"
         console.warn("Counter API offline, menggunakan simulasi.");
+        
         let savedCount = parseInt(localStorage.getItem('visitor_sim')) || 100;
-        savedCount += 1;
+        savedCount += 1; // Tambah 1 setiap refresh
+        
         localStorage.setItem('visitor_sim', savedCount);
         animateValue(countElement, 0, savedCount, 1000);
     }
 }
 
+// Fungsi animasi angka menghitung
 function animateValue(obj, start, end, duration) {
     let startTimestamp = null;
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString('id-ID');
-        if (progress < 1) window.requestAnimationFrame(step);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
     };
     window.requestAnimationFrame(step);
 }
